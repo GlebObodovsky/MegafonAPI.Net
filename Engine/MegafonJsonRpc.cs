@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using WebSocketSharp;
+﻿using MegafonAPINet.Exceptions;
 using MegafonAPINet.Helpers.StringConstants;
 using MegafonAPINet.POCOs;
-using MegafonAPINet.Exceptions;
-using System.Text.RegularExpressions;
 using MegafonAPINet.POCOs.MethodArguments;
 using MegafonAPINet.POCOs.NotificationArguments;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using WebSocketSharp;
 
 namespace MegafonAPINet.Engine
 {
