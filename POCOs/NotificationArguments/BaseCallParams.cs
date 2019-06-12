@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MegafonAPINet.POCOs.NotificationArguments
+namespace MegafonApiNet.POCOs.NotificationArguments
 {
     public class BaseCallParams: BaseParams
     {

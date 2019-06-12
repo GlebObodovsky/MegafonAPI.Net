@@ -1,15 +1,15 @@
-﻿using MegafonAPINet.Exceptions;
-using MegafonAPINet.Helpers.StringConstants;
-using MegafonAPINet.POCOs;
-using MegafonAPINet.POCOs.MethodArguments;
-using MegafonAPINet.POCOs.NotificationArguments;
+﻿using MegafonApiNet.Exceptions;
+using MegafonApiNet.Helpers.StringConstants;
+using MegafonApiNet.POCOs;
+using MegafonApiNet.POCOs.MethodArguments;
+using MegafonApiNet.POCOs.NotificationArguments;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using WebSocketSharp;
 
-namespace MegafonAPINet.Engine
+namespace MegafonApiNet.Engine
 {
     public class MegafonJsonRpc: IDisposable
     {
@@ -18,7 +18,11 @@ namespace MegafonAPINet.Engine
 
         private Int32 requestsCounter;
 
-        private const String phoneNumberRegex = @"^7\d{10}$";
+        /// <summary>
+        /// Свойство, задающее формат телефонного номера в регулярном выражении, по умолчанию - "^7\d{10}$", 
+        /// что эквивалентно номеру в формате 7XXXXXXXXXX
+        /// </summary>
+        public String PhoneNumberRegex { get; set; }
         #endregion
 
         #region Properties
@@ -36,7 +40,19 @@ namespace MegafonAPINet.Engine
             {
                 socket.SetCredentials(credentials.Key, credentials.Value, true);
             }
+
+            Initialize();
+        }
+
+        private void Initialize()
+        {
+            if (socket == null)
+                throw new NullReferenceException("Something went wrong. WebSocket object is null.");
+
             requestsCounter = 0;
+
+            PhoneNumberRegex = @"^7\d{10}$";
+
             socket.OnOpen += OnConnectionEstablishedHandler;
             socket.OnMessage += OnMessageReceivedHandler;
             socket.OnError += OnErrorReceivedHandler;
@@ -45,8 +61,8 @@ namespace MegafonAPINet.Engine
         }
         #endregion
 
-        #region Functions
-        private void Request(string method, BaseMethodParams @params)
+        #region Private Functions
+        private void Request(string method, BaseMethodArgs @params = null)
         {
             if (!socket.IsAlive)
                 throw new SessionIsDeadException("The connection wasn't established or died.");
@@ -61,6 +77,37 @@ namespace MegafonAPINet.Engine
                 }, Formatting.Indented, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore } );
 
             socket.Send(request);
+        }
+        #endregion
+
+        #region Public Functions
+        /// <summary>
+        /// Принять входящий вызов.
+        /// </summary>
+        public void AnswerCall(AnswerCallArgs answerCallArgs)
+        {
+            if (answerCallArgs == null)
+                throw new ArgumentNullException("AnswerCallArgs argument is null.");
+
+            if (answerCallArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
+            Request(MethodNames.AnswerCall, answerCallArgs);
+        }
+
+        /// <summary>
+        /// Отклонить входящий вызов.
+        /// </summary>
+        /// <param name="rejectCallArgs"></param>
+        public void RejectCall(RejectCallArgs rejectCallArgs)
+        {
+            if (rejectCallArgs == null)
+                throw new ArgumentNullException("RejectCallArgs argument is null.");
+
+            if (rejectCallArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
+            Request(MethodNames.RejectCall, rejectCallArgs);
         }
 
         /// <summary>
@@ -81,10 +128,10 @@ namespace MegafonAPINet.Engine
             if (makeCallArgs == null)
                 throw new ArgumentNullException("MakeCall argument is null.");
 
-            if (!Regex.IsMatch(makeCallArgs.NumberToReach, phoneNumberRegex))
+            if (!Regex.IsMatch(makeCallArgs.NumberToReach, PhoneNumberRegex))
                 throw new ArgumentException($"Number you were going to reach: ${makeCallArgs.NumberToReach} is invalid. Use 7XXXXXXXXXX format.");
 
-            if (!String.IsNullOrEmpty(makeCallArgs.CallingNumber) && !Regex.IsMatch(makeCallArgs.CallingNumber, phoneNumberRegex))
+            if (!String.IsNullOrEmpty(makeCallArgs.CallingNumber) && !Regex.IsMatch(makeCallArgs.CallingNumber, PhoneNumberRegex))
                 throw new ArgumentException($"Initializing call number: ${makeCallArgs.CallingNumber} is invalid. Use 7XXXXXXXXXX format.");
 
             Request(MethodNames.MakeCall, makeCallArgs);
@@ -97,52 +144,11 @@ namespace MegafonAPINet.Engine
         {
             if (terminateCallArgs == null)
                 throw new ArgumentNullException("MakeCall argument is null.");
+
             if (terminateCallArgs.SessionId == Guid.Empty)
                 throw new ArgumentException("SessionId is empty.");
 
             Request(MethodNames.TerminateCall, terminateCallArgs);
-        }
-
-        /// <summary>
-        /// Проигрывает звуковое сообщение на входящее или исходящее плечо вызова.
-        /// </summary>
-        /// <param name="playAnnouncementArgs"></param>
-        public void PlayAnnouncement(PlayAnnouncementArgs playAnnouncementArgs)
-        {
-            if(playAnnouncementArgs == null)
-                throw new ArgumentNullException("PlayAnnouncementArgs is null.");
-            if (playAnnouncementArgs.SessionId == Guid.Empty)
-                throw new ArgumentException("SessionId is empty.");
-            if (String.IsNullOrEmpty(playAnnouncementArgs.FileName))
-                throw new ArgumentException("FileName parameter hasn't been specified.");
-
-            Request(MethodNames.PlayAnnouncement, playAnnouncementArgs);
-        }
-
-        /// <summary>
-        /// Отправить СМС
-        /// </summary>
-        /// <param name="sendSMSArgs"></param>
-        public void SendSMS(SendSMSArgs sendSMSArgs)
-        {
-            if (sendSMSArgs == null)
-                throw new ArgumentNullException("SendSMSArgs is null.");
-
-            if (!Regex.IsMatch(sendSMSArgs.To, phoneNumberRegex))
-                throw new ArgumentException($"Number youare sending SMS to: ${sendSMSArgs.To} is invalid. Use 7XXXXXXXXXX format.");
-
-            Request(MethodNames.SendSMS, sendSMSArgs);
-        }
-
-        /// <summary>
-        /// Принять входящий вызов.
-        /// </summary>
-        public void AnswerCall(AnswerCallArgs answerCallArgs)
-        {
-            if (answerCallArgs == null)
-                throw new ArgumentNullException("AnswerCallArgs argument is null.");
-
-            Request(MethodNames.AnswerCall, answerCallArgs);
         }
 
         /// <summary>
@@ -153,7 +159,28 @@ namespace MegafonAPINet.Engine
             if (tromboneCallArgs == null)
                 throw new ArgumentNullException("TromboneCallArgs argument is null.");
 
+            if (tromboneCallArgs.ASessionId == Guid.Empty || tromboneCallArgs.BSessionId == Guid.Empty)
+                throw new ArgumentException($"Either of sessions A: {tromboneCallArgs.ASessionId} or B: {tromboneCallArgs.BSessionId} is empty.");
+
             Request(MethodNames.TromboneCall, tromboneCallArgs);
+        }
+
+        /// <summary>
+        /// Проигрывает звуковое сообщение на входящее или исходящее плечо вызова.
+        /// </summary>
+        /// <param name="playAnnouncementArgs"></param>
+        public void PlayAnnouncement(PlayAnnouncementArgs playAnnouncementArgs)
+        {
+            if(playAnnouncementArgs == null)
+                throw new ArgumentNullException("PlayAnnouncementArgs is null.");
+
+            if (playAnnouncementArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
+            if (String.IsNullOrEmpty(playAnnouncementArgs.FileName))
+                throw new ArgumentException("FileName parameter hasn't been specified.");
+
+            Request(MethodNames.PlayAnnouncement, playAnnouncementArgs);
         }
 
         /// <summary>
@@ -164,7 +191,80 @@ namespace MegafonAPINet.Engine
             if (playToneArgs == null)
                 throw new ArgumentNullException("PlayToneArgs argument is null.");
 
+            if (playToneArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
             Request(MethodNames.PlayTone, playToneArgs);
+        }
+
+        /// <summary>
+        /// Позволяет включить запись звонковой сессии (не конференции!)
+        /// </summary>
+        /// <param name="startCallRecordArgs"></param>
+        public void StartCallRecord(StartCallRecordArgs startCallRecordArgs)
+        {
+            if (startCallRecordArgs == null)
+                throw new ArgumentNullException("StartCallRecordArgs is null.");
+
+            if (startCallRecordArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
+            Request(MethodNames.StartCallRecord, startCallRecordArgs);
+        }
+
+        /// <summary>
+        /// Позволяет остановить запись звонковой сессии (не конференции!)
+        /// </summary>
+        public void StopCallRecord(StopCallRecordArgs stopCallRecordArgs)
+        {
+            if (stopCallRecordArgs == null)
+                throw new ArgumentNullException("StopCallRecordArgs is null.");
+
+            if (stopCallRecordArgs.SessionId == Guid.Empty)
+                throw new ArgumentException("SessionId is empty.");
+
+            Request(MethodNames.StopCallRecord, stopCallRecordArgs);
+        }
+
+        /// <summary>
+        /// Метод создает голосовую конференцию
+        /// </summary>
+        public void CreateConf() => Request(MethodNames.CreateConf);
+
+        /// <summary>
+        /// Добавляет вызов в аудиоконференцию. Аудио-тракт вызова коммутируется в общую конференцию.
+        /// </summary>
+        /// <param name="addToConfArgs"></param>
+        public void AddToConf(AddToConfArgs addToConfArgs)
+        {
+            if (addToConfArgs == null)
+                throw new ArgumentNullException("AddToConfArgs is null.");
+
+            if (addToConfArgs.SessionId == Guid.Empty || addToConfArgs.ConfSessionId == Guid.Empty)
+                throw new ArgumentException($"Either SessionId: {addToConfArgs.SessionId} or ConfSessionId: {addToConfArgs.ConfSessionId} is empty.");
+
+            Request(MethodNames.AddToConf, addToConfArgs);
+        }
+
+        // ToDo:  RemoveFromConf
+        // ToDo:  DestroyConf
+        // ToDo:  StatusConf
+        // ToDo:  StartConfRecord
+        // ToDo:  StopConfRecord
+
+        /// <summary>
+        /// Отправить СМС
+        /// </summary>
+        /// <param name="sendSMSArgs"></param>
+        public void SendSMS(SendSMSArgs sendSMSArgs)
+        {
+            if (sendSMSArgs == null)
+                throw new ArgumentNullException("SendSMSArgs is null.");
+
+            if (!Regex.IsMatch(sendSMSArgs.To, PhoneNumberRegex))
+                throw new ArgumentException($"Number youare sending SMS to: ${sendSMSArgs.To} is invalid. Use 7XXXXXXXXXX format.");
+
+            Request(MethodNames.SendSMS, sendSMSArgs);
         }
         #endregion
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MegafonAPINet.POCOs.NotificationArguments
+namespace MegafonApiNet.POCOs.NotificationArguments
 {
     public class NotificatonEventArgs<T>: EventArgs
         where T: BaseParams

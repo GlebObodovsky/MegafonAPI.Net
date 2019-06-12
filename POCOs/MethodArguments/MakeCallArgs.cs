@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MegafonAPINet.POCOs.MethodArguments
+namespace MegafonApiNet.POCOs.MethodArguments
 {
-    public class MakeCallArgs: BaseMethodParams
+    public class MakeCallArgs: BaseMethodArgs
     {
         /// <summary>
         /// Номер абонента, совершающего вызов или отправляющего SMS-сообщение, в формате E.164

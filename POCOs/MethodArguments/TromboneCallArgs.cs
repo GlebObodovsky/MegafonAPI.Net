@@ -1,9 +1,9 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MegafonAPINet.POCOs.MethodArguments
+namespace MegafonApiNet.POCOs.MethodArguments
 {
-    public class TromboneCallArgs: BaseMethodParams
+    public class TromboneCallArgs: BaseMethodArgs
     {
         /// <summary>
         /// Уникальный номер сессии для объединения. Возвращается методом MakeCall или событием OnIncomingCall.

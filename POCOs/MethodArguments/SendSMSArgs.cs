@@ -2,9 +2,9 @@
 using Newtonsoft.Json.Converters;
 using System;
 
-namespace MegafonAPINet.POCOs.MethodArguments
+namespace MegafonApiNet.POCOs.MethodArguments
 {
-    public class SendSMSArgs: BaseMethodParams
+    public class SendSMSArgs: BaseMethodArgs
     {
         /// <summary>
         /// Номер (номер отправителя) в формате E.164.

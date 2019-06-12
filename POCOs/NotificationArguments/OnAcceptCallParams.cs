@@ -1,4 +1,4 @@
-﻿namespace MegafonAPINet.POCOs.NotificationArguments
+﻿namespace MegafonApiNet.POCOs.NotificationArguments
 {
     public class OnAcceptCallParams : BaseCallParams { }
 }

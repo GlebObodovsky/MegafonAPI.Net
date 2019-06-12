@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MegafonAPINet.Exceptions
+namespace MegafonApiNet.Exceptions
 {
     public class SessionIsDeadException : Exception
     {

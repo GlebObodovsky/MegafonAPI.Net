@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MegafonAPINet.Helpers.StringConstants
+namespace MegafonApiNet.Helpers.StringConstants
 {
     public static class MethodNames
     {

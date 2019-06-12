@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Converters;
 using System;
 
-namespace MegafonAPINet.POCOs.NotificationArguments
+namespace MegafonApiNet.POCOs.NotificationArguments
 {
     public class OnSMSDeliveryParams: BaseParams
     {

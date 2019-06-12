@@ -1,15 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
 
-namespace MegafonAPINet.POCOs.MethodArguments
+namespace MegafonApiNet.POCOs.MethodArguments
 {
-    public class PlayAnnouncementArgs: BaseMethodParams
+    public class PlayAnnouncementArgs: HasSessionIdArgs
     {
-        /// <summary>
-        /// Уникальный идентификатор звонковой сессии.
-        /// </summary>
-        [JsonProperty("call_session")]
-        public Guid SessionId { get; set; }
         /// <summary>
         /// Имя файла проигрываемого сообщения. Формат файла - 64K PCM A-law (8KHz, 8 Bit).
         /// </summary>
